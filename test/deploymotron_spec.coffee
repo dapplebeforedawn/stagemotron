@@ -1,33 +1,64 @@
+fs            = require("fs")
 assert        = require("assert")
 deploymotron  = require("../deploymotron.js")
 
-assert['hubot'] = (a, b)->
-  isValid = (a,b)->
-    return true   if (a == b)
-    return false  if (a == null || b == null)
-    return false  if (a.length != b.length)
+newChatRoom = (callback)->
+  callback or= ->
+  say: (message)->
+    callback(message)
+    message
 
-    for i in [0...a.length]
-      return false if (a[i] != b[i])
-    return true
-  assert.fail(a, b, undefined, '==') unless isValid(a,b)
+robot = ()->
+  responses   = []
+  input       = null
+  chatRoom    = newChatRoom()
+  payload     = null
 
-robot = (chat)->
-  responses = []
+  setChatRoom: (chatCallback)->
+    chatRoom = newChatRoom(chatCallback)
+    this
+
+  setInput: (_input)->
+    input = _input
+    this
+
+  setPayload: (_payload)->
+    payload = _payload
+    this
+
   hear: (regex, robotCallback)->
-    match = chat.match(regex)
+    match = input.match(regex)
     msg   =
       send:  (response)->
-        return response
+        return chatRoom.say(response)
       match: match
 
-    responses.push robotCallback(msg) if match
-    responses
+    robotCallback(msg) if match
+
+  messageRoom: (message)->
+    chatRoom.say(message)
+
+  router:
+    post: (urlPath, callback)->
+      return unless input == urlPath
+      callback(
+        body:
+          payload: payload
+      )
+
+  http: (url)->
+    get: ->
+      (callback)->
+        filePath = url.match(/[^\/]+$/)[0]
+        fs.readFile "test/fixtures/#{filePath}", (err, data)->
+          callback err, {}, data.toString()
 
 featureName = "feature-branch"
 
-robotDo = (command)->
-  deploymotron(robot command)
+assertChat = (expect, done)->
+  (chatPost)->
+    assert.equal expect, chatPost
+    done()
 
 describe 'Deploymotron', ->
   beforeEach ->
@@ -38,31 +69,59 @@ describe 'Deploymotron', ->
       name or= featureName
       "deploymotron, << #{name}"
 
-    it 'resonds with two', ->
+    it 'resonds with two', (done)->
       sizeReq = "deploymotron, ls"
       expect  = "#{featureName},another-feature"
-      robotDo chat()
-      robotDo chat('another-feature')
-      assert.hubot robotDo(sizeReq), [expect]
+      r       = robot()
+      deploymotron r.setInput(chat())
+      deploymotron r.setInput(chat('another-feature'))
+      deploymotron r.setInput(sizeReq).setChatRoom(assertChat expect, done)
 
   describe 'adding a feature to the pipe', ->
     chat = "deploymotron, << #{featureName}"
 
-    it 'responds with the pipe length', ->
-      expect  = "You're number: 1 in the pipeline"
-      assert.hubot robotDo(chat), [expect]
+    it 'lets the first feature start', (done)->
+      expect    = "The staging environment is ready for feature-branch"
+      r       = robot().setInput(chat).setChatRoom(assertChat expect, done)
+      deploymotron(r)
 
-    it 'increases the pipe length', ->
+    it 'tells the second feature to wait', (done)->
+      expect        = "You're number: 2 in the pipeline"
+      firstFeature  = "deploymotron, << a-feature"
+      secondFeature = "deploymotron, << another-feature"
+      r             = robot()
+      deploymotron r.setInput(firstFeature)
+      deploymotron r.setInput(secondFeature).setChatRoom(assertChat expect, done)
+
+    it 'increases the pipe length', (done)->
       dumpReq = "deploymotron, dump"
-      expect  = JSON.stringify([ {branch: featureName} ])
+      expect  = JSON.stringify([ {branch: featureName, lsotd: false} ])
+      r       = robot()
+      deploymotron r.setInput(chat)
+      deploymotron r.setInput(dumpReq).setChatRoom(assertChat expect, done)
 
-      deploymotron(robot chat)
-      assert.hubot robotDo(dumpReq), [expect]
+  describe 'a user merges master', ->
 
-  # describe 'the first user being notified that they can stage', ->
+    it 'notifies the next feature that they can stage', (done)->
+      expect        = "The staging environment is ready for next-feature-branch"
+      featureSHA    = "415364bea630d56e0fc6d6b5449e8faac613992c"
+      firstFeature  = "deploymotron, << feature-branch"
+      nextFeature   = "deploymotron, << next-feature-branch"
+      r             = robot()
 
-  # describe '', ->
+      deploymotron r.setInput(firstFeature)
+      deploymotron r.setInput(nextFeature)
+      deploymotron r.setInput('/deploymotron')
+                    .setPayload(JSON.stringify { sha: featureSHA })  # the masterSHA matches the feature
+                    .setChatRoom(assertChat expect, done)
 
+
+
+
+# how do we know when to advance the pipeline?
+#   - when the SHA of master == the SHA of head
+# how does deploymotron know when the SHA of master has changed?
+#   - it gets a POST from the repo-watcher.
 
 
 #  deploymotron, << name-of-feature-branch     # add your (tested) branch to the pipeline

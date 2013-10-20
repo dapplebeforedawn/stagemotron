@@ -64,3 +64,5 @@ Getting a sha:
 ```
 curl -i https://api.github.com/repos/:user/:repo/git/refs/heads/:name-of-feature-branch
 ```
+
+masterWatch needs to be able to take a start-up SHA to force it jump start the pipeline
