@@ -1,6 +1,6 @@
 pipeline     = []
 history      = []
-CMM_PHP_REPO = process.env["CMM_PHP_REPO"] # something like: https://api.github.com/repos/dapplebeforedawn/a-test/git/refs/heads/delete-me
+CMM_PHP_REPO = process.env["CMM_PHP_REPO"] # something like: https://api.github.com/repos/dapplebeforedawn/a-test/git/refs/heads
 
 module.exports = (robot) ->
 
