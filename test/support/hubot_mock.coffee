@@ -46,3 +46,7 @@ module.exports = ()->
         fs.readFile "test/fixtures/#{filePath}", (err, data)->
           callback err, {}, data.toString()
 
+    post: (data)->
+      (callback)->
+
+

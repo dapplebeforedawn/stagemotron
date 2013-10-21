@@ -63,6 +63,9 @@
                 return callback(err, {}, data.toString());
               });
             };
+          },
+          post: function(data) {
+            return function(callback) {};
           }
         };
       }
