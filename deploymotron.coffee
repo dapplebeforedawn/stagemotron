@@ -66,6 +66,7 @@ module.exports = (robot) ->
 
 
   robot.hear /deploymotron, dump/i, (msg)->
-    msg.send JSON.stringify(pipeline)
-    # msg.send JSON.stringify(history)
+    msg.send JSON.stringify
+      pipeline: pipeline
+      history:  history
 

@@ -31,7 +31,6 @@
       });
     };
     readyForBranch = function(branch) {
-      console.log("The staging environment is ready for " + branch);
       return robot.messageRoom("The staging environment is ready for " + branch);
     };
     shaMatches = function(masterSHA, pipeSHA) {
@@ -76,7 +75,10 @@
       }
     });
     return robot.hear(/deploymotron, dump/i, function(msg) {
-      return msg.send(JSON.stringify(pipeline));
+      return msg.send(JSON.stringify({
+        pipeline: pipeline,
+        history: history
+      }));
     });
   };
 

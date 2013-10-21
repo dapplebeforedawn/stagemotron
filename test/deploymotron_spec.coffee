@@ -1,57 +1,6 @@
-fs            = require("fs")
 assert        = require("assert")
 deploymotron  = require("../deploymotron.js")
-
-newChatRoom = (callback)->
-  callback or= ->
-  say: (message)->
-    callback(message)
-    message
-
-robot = ()->
-  responses   = []
-  input       = null
-  chatRoom    = newChatRoom()
-  payload     = null
-
-  setChatRoom: (chatCallback)->
-    chatRoom = newChatRoom(chatCallback)
-    this
-
-  setInput: (_input)->
-    input = _input
-    this
-
-  setPayload: (_payload)->
-    payload = _payload
-    this
-
-  hear: (regex, robotCallback)->
-    match = input.match(regex)
-    msg   =
-      send:  (response)->
-        return chatRoom.say(response)
-      match: match
-
-    robotCallback(msg) if match
-
-  messageRoom: (message)->
-    chatRoom.say(message)
-
-  router:
-    post: (urlPath, callback)->
-      return unless input == urlPath
-      callback(
-        body:
-          payload: payload
-      )
-
-  http: (url)->
-    get: ->
-      (callback)->
-        filePath = url.match(/[^\/]+$/)[0]
-        fs.readFile "test/fixtures/#{filePath}", (err, data)->
-          callback err, {}, data.toString()
+robot         = require("./support/hubot_mock.js")
 
 featureName = "feature-branch"
 
@@ -95,7 +44,9 @@ describe 'Deploymotron', ->
 
     it 'increases the pipe length', (done)->
       dumpReq = "deploymotron, dump"
-      expect  = JSON.stringify([ {branch: featureName, lsotd: false} ])
+      expect  = JSON.stringify
+        pipeline: [ {branch: featureName, lsotd: false} ]
+        history:  []
       r       = robot()
       deploymotron r.setInput(chat)
       deploymotron r.setInput(dumpReq).setChatRoom(assertChat expect, done)
