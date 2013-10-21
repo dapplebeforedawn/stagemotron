@@ -45,7 +45,7 @@
         return robot.messageRoom("Master was updated, but doesn't match the SHA at the front of the pipe\n    Master: " + masterSHA + "\n  Pipeline: " + pipeSHA);
       }
     };
-    robot.router.post('/deploymotron', function(req, res) {
+    robot.router.post('/stagemotron', function(req, res) {
       var masterSHA;
       if (!pipeline[0]) {
         return;
@@ -58,12 +58,12 @@
         return shaChange[masterSHA === ghData.sha](masterSHA, ghData.sha);
       });
     });
-    robot.hear(/deploymotron, ls/i, function(msg) {
+    robot.hear(/stagemotron, ls/i, function(msg) {
       return msg.send("" + pipeline.map(function(pipeUnit) {
         return pipeUnit.branch;
       }));
     });
-    robot.hear(/deploymotron, << (.+)/i, function(msg) {
+    robot.hear(/stagemotron, << (.+)/i, function(msg) {
       var feature, newUnit;
       feature = msg.match[1];
       newUnit = newPipeUnit(feature);
@@ -74,7 +74,7 @@
         return readyForBranch(newUnit.branch);
       }
     });
-    return robot.hear(/deploymotron, dump/i, function(msg) {
+    return robot.hear(/stagemotron, dump/i, function(msg) {
       return msg.send(JSON.stringify({
         pipeline: pipeline,
         history: history

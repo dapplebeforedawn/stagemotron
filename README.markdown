@@ -33,30 +33,30 @@
  - Reguarding the last-stage-of-the-day(lsotd):  Since we try not to deploy in the late afternoon, this means that the entire pipeline must also stop in the late afternoon.  If you have a "demo", or need to hold the staging environment for a long time, try to be the lsotd.
 
 
-# Deploymotron
+# Stagemotron
 > Deployment pipeline helper
 
-## Talking to Deploymotron
+## Talking to Stagemotron
 ```
-  deploymotron, << name-of-feature-branch     # add your (tested) branch to the pipeline
-  deploymotron, lsotd name-of-feature-branch  # request lsotd status, will alert if already taken.
-  deploymotron, ls                            # list the contents of the pipeline
-  deploymotron, ls | head                     # who's next for staging
-  deploymotron, rm name-of-feature-branch     # remove a feature from the pipeline
+  stagemotron, << name-of-feature-branch     # add your (tested) branch to the pipeline
+  stagemotron, lsotd name-of-feature-branch  # request lsotd status, will alert if already taken.
+  stagemotron, ls                            # list the contents of the pipeline
+  stagemotron, ls | head                     # who's next for staging
+  stagemotron, rm name-of-feature-branch     # remove a feature from the pipeline
 ```
 
-## Listening to Deploymotron
+## Listening to Stagemotron
   - `The staging environment is ready for name-of-feature-branch`
 
 ## last-stage-of-the-day
-Deploymotron knows that the regression test suite takes about 90 minutes.  So the first time that staging becomes available after 1:30PM, if there's an lsotd request, it will be notified (instead of the next branch in queue).
+Stagemotron knows that the regression test suite takes about 90 minutes.  So the first time that staging becomes available after 1:30PM, if there's an lsotd request, it will be notified (instead of the next branch in queue).
 
 ## How It Works:
- - Deploymotron compares the SHAs of the master branch with the SHA of the feature branch (known by name-of-feature-branch).  When they match, the next feature owner is notified.
+ - Stagemotron compares the SHAs of the master branch with the SHA of the feature branch (known by name-of-feature-branch).  When they match, the next feature owner is notified.
  - If the top feature branch (the result of `ls | head`) is removed (by `rm name-of-feature-branch`) the next feature owner is notified.
 
 ## What We're Not Handling Right Now:
-It's not enough to just manage the staging/merging part of the pipeline, but the deployment part needs to be managed as well, to ensure feature branches are deployed one at time.  For now this should be managed with human-to-human communication.  In the future, deploymotron can be extended to include the deployment step as well.
+It's not enough to just manage the staging/merging part of the pipeline, but the deployment part needs to be managed as well, to ensure feature branches are deployed one at time.  For now this should be managed with human-to-human communication.  In the future, stagemotron can be extended to include the deployment step as well.
 
 ## Impementation Note:
 

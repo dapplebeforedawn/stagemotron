@@ -44,18 +44,18 @@ module.exports = (robot) ->
   # the SHA of master has changed
   # check the SHA of the front of the pipeline to see if they are
   # the same.  If so, notify the next guy
-  robot.router.post '/deploymotron', (req, res)->
+  robot.router.post '/stagemotron', (req, res)->
     return unless pipeline[0]
     masterSHA = JSON.parse(req.body.payload)['sha']
     getSHAofBranch pipeline[0].branch, (err, ghData)->
       return robot.messageRoom(err) if err
       shaChange[masterSHA == ghData.sha](masterSHA, ghData.sha)
 
-  robot.hear /deploymotron, ls/i, (msg)->
+  robot.hear /stagemotron, ls/i, (msg)->
     msg.send "" + pipeline.map (pipeUnit)->
       pipeUnit.branch
 
-  robot.hear /deploymotron, << (.+)/i, (msg)->
+  robot.hear /stagemotron, << (.+)/i, (msg)->
     feature = msg.match[1]
     newUnit = newPipeUnit(feature)
     pipeline.push newUnit
@@ -65,7 +65,7 @@ module.exports = (robot) ->
       readyForBranch newUnit.branch
 
 
-  robot.hear /deploymotron, dump/i, (msg)->
+  robot.hear /stagemotron, dump/i, (msg)->
     msg.send JSON.stringify
       pipeline: pipeline
       history:  history
