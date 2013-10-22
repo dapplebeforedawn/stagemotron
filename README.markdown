@@ -43,6 +43,10 @@
   stagemotron, ls                            # list the contents of the pipeline
   stagemotron, ls | head                     # who's next for staging
   stagemotron, rm name-of-feature-branch     # remove a feature from the pipeline
+
+  # Commands that we should never need:
+  stagemotron, shutup                        # incase stagemotron forgets the first rule
+  stagemotron, watch <Optional SHA>          # kick start stagemotron
 ```
 
 ## Listening to Stagemotron
